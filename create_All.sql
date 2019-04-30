@@ -31,13 +31,16 @@ CREATE TABLE news (
 CREATE TABLE palier(
 	id_projet integer NOT NULL REFERENCES projet(id),
 	somme integer NOT NULL,
-	objectif varchar(200) NOT NULL
+	objectif varchar(200) NOT NULL,
+	PRIMARY KEY(id_projet,somme)
+	
 );
 
 CREATE TABLE contrepartie (
 	id_projet integer NOT NULL REFERENCES projet(id),
 	somme integer NOT NULL,
-	contrepartie varchar(200) NOT NULL
+	contrepartie varchar(200) NOT NULL,
+	PRIMARY KEY(id_projet,somme)
 );
 
 CREATE TABLE commentaire (
@@ -49,22 +52,26 @@ CREATE TABLE commentaire (
 );
 
 CREATE TABLE don (
+       	id serial PRIMARY KEY,
 	id_donateur integer NOT NULL REFERENCES utilisateur(id),
 	id_projet integer NOT NULL REFERENCES projet(id),
 	somme integer NOT NULL,
 	date_don TIMESTAMP NOT NULL
+	
 );
 
 CREATE TABLE mensualite(
 	id_donateur integer NOT NULL REFERENCES utilisateur(id),
 	id_projet integer NOT NULL REFERENCES projet(id),
-	somme integer NOT NULL
+	somme integer NOT NULL,
+	PRIMARY KEY(id_donateur,id_projet)
 );
 
 CREATE TABLE preference(
 	id_utilisateur integer NOT NULL REFERENCES utilisateur(id),
 	id_categorie integer NOT NULL REFERENCES categorie(id),
-	somme integer
+	somme integer,
+	PRIMARY KEY(id_utilisateur,id_categorie)
 );
 
 CREATE TABLE archivage(
