@@ -1,1 +1,1 @@
-# BDav
+Projet de BDav de Philippe Said et Florian Szczepanski
