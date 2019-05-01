@@ -16,7 +16,7 @@ CREATE TABLE projet (
 	id serial PRIMARY KEY,
 	id_createur integer NOT NULL REFERENCES utilisateur(id),
 	id_categorie integer NOT NULL REFERENCES categorie(id),
-	descripton varchar(500),
+	description varchar(500),
 	date_creation TIMESTAMP NOT NULL
 );
 
@@ -56,8 +56,8 @@ CREATE TABLE don (
 	id_donateur integer NOT NULL REFERENCES utilisateur(id),
 	id_projet integer NOT NULL REFERENCES projet(id),
 	somme integer NOT NULL,
-	date_don TIMESTAMP NOT NULL
-	
+	date_don TIMESTAMP NOT NULL,
+	estMensuel boolean NOT NULL
 );
 
 CREATE TABLE mensualite(
