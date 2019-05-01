@@ -1,3 +1,3 @@
-DROP TABLE IF EXISTS archivage,categorie,commentaire,
+DROP TABLE IF EXISTS categorie,commentaire,
      	   contrepartie,don,mensualite,news,palier,
-	   preference,projet,utilisateur;
+	   preference,projet,utilisateur,time,archive;

@@ -1,3 +1,10 @@
+CREATE TABLE time (
+       time timestamp NOT NULL
+);
+INSERT INTO time (time)
+       VALUES ('2019-05-01 12:00:00'::timestamp);
+       
+
 CREATE TABLE utilisateur (
 	id serial PRIMARY KEY,
 	mail varchar(50) UNIQUE NOT NULL,
@@ -14,7 +21,7 @@ CREATE TABLE categorie (
 
 CREATE TABLE projet (
 	id serial PRIMARY KEY,
-	id_createur integer NOT NULL REFERENCES utilisateur(id),
+	id_createur integer UNIQUE NOT NULL REFERENCES utilisateur(id),
 	id_categorie integer NOT NULL REFERENCES categorie(id),
 	description varchar(500),
 	date_creation TIMESTAMP NOT NULL
@@ -74,12 +81,14 @@ CREATE TABLE preference(
 	PRIMARY KEY(id_utilisateur,id_categorie)
 );
 
-CREATE TABLE archivage(
+CREATE TABLE archive(
 	id serial PRIMARY KEY,
-	id_utilisateur integer NOT NULL REFERENCES utilisateur(id),
+	id_utilisateur integer NOT NULL,
 	date_operation TIMESTAMP NOT NULL,
-	operation varchar(10) NOT NULL,
-	montant integer
-	
+	operation varchar(15) NOT NULL
+	CHECK (operation in ('INSCRIPTION','OUVERTURE_PROJET','DON',
+			'CHGT_MENSUALITE','FERMETURE_PROJET','DESINSCRIPTION')),
+	montant integer,
+	cible integer	
 );
 	

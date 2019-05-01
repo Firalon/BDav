@@ -1,0 +1,1 @@
+INSERT INTO utilisateur (mail, nom, prenom, date newsletter
