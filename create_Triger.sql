@@ -24,3 +24,28 @@ CREATE TRIGGER don
 AFTER INSERT ON don
 FOR EACH ROW
 EXECUTE PROCEDURE don();
+
+
+CREATE OR REPLACE FUNCTION update_pref() RETURNS TRIGGER AS $$
+BEGIN
+IF ((SELECT id_categorie FROM preference WHERE id_utilisateur = NEW.id_donateur) is NOT NULL)
+THEN
+	UPDATE preference
+	SET somme = (somme +NEW.somme)
+	WHERE id_utilisateur = NEW.id_donateur
+	      AND id_categorie =
+	      (SELECT projet.id_categorie FROM projet
+	      WHERE projet.id = NEW.id_projet);
+ELSE
+	INSERT INTO preference (id_utilisateur, id_categorie, somme)
+	VALUES (NEW.id_donateur, (SELECT projet.id_categorie FROM projet
+	      WHERE projet.id = NEW.id_projet), NEW.somme);
+END IF;
+	RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_pref
+AFTER INSERT ON don
+FOR EACH ROW
+EXECUTE PROCEDURE update_pref();
