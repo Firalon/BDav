@@ -49,3 +49,35 @@ CREATE TRIGGER update_pref
 AFTER INSERT ON don
 FOR EACH ROW
 EXECUTE PROCEDURE update_pref();
+
+
+CREATE OR REPLACE FUNCTION prevent_self_don() RETURNS TRIGGER AS $$
+BEGIN
+IF (NEW.id_donateur = (SELECT utilisateur.id FROM utilisateur, projet WHERE
+utilisateur.id = projet.id_createur AND projet.id = NEW.id_projet)) THEN	RAISE EXCEPTION 'Tentative de don a son propre projet';
+ELSE
+	RETURN NEW; 
+END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_self_don
+BEFORE INSERT ON don
+FOR EACH ROW
+EXECUTE PROCEDURE prevent_self_don();
+
+
+CREATE OR REPLACE FUNCTION prevent_self_com() RETURNS TRIGGER AS $$
+BEGIN
+IF (NEW.id_utilisateur = (SELECT utilisateur.id FROM utilisateur, projet WHERE
+utilisateur.id = projet.id_createur AND projet.id = NEW.id_projet)) THEN	RAISE EXCEPTION 'Tentative de commentaire a son propre projet';
+ELSE
+	RETURN NEW; 
+END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_self_com
+BEFORE INSERT ON commentaire
+FOR EACH ROW
+EXECUTE PROCEDURE prevent_self_com();
