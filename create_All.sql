@@ -14,6 +14,15 @@ CREATE TABLE utilisateur (
 	inscritNewsletter BOOLEAN NOT NULL
 );
 
+CREATE TABLE informations_banquaires(
+       id_utilisateur integer NOT NULL REFERENCES utilisateur(id),
+       numero integer NOT NULL,
+       mois_expiration integer NOT NULL CHECK (mois_expiration>=1 AND mois_expiration<=12),
+       annee_expiration integer NOT NULL CHECK (annee_expiration>=0 AND annee_expiration<=99),
+       cryptogramme integer NOT NULL
+);
+       
+
 CREATE TABLE categorie (
 	id serial PRIMARY KEY,
 	nom varchar(20) NOT NULL
@@ -88,7 +97,7 @@ CREATE TABLE archive(
 	operation varchar(15) NOT NULL
 	CHECK (operation in ('INSCRIPTION','OUVERTURE_PROJET','DON',
 			'CHGT_MENSUALITE','FERMETURE_PROJET','DESINSCRIPTION')),
-	montant integer,
+	valeur integer,
 	cible integer	
 );
 	
