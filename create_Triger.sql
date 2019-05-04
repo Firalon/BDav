@@ -81,3 +81,60 @@ CREATE TRIGGER prevent_self_com
 BEFORE INSERT ON commentaire
 FOR EACH ROW
 EXECUTE PROCEDURE prevent_self_com();
+
+CREATE OR REPLACE FUNCTION check_infos_banquaires() RETURNS TRIGGER AS $$
+BEGIN
+IF (SELECT id_utilisateur FROM informations_banquaires WHERE id_utilisateur = NEW.id_donateur ) THEN
+    RETURN NEW;
+ELSE
+	RAISE EXCEPTION 'L''utilisateur n''as pas d''informations banquaires associes';	
+END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_infos_banquaires
+BEFORE INSERT on mensualite
+FOR EACH ROW
+EXECUTE PROCEDURE check_infos_banquaires();
+
+
+CREATE OR REPLACE FUNCTION send_mail(mail varchar(50)) RETURNS VOID AS $$
+BEGIN
+	RAISE NOTICE 'Mail envoye a: %',mail;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION delete_projet() RETURNS TRIGGER AS $$
+BEGIN
+	PERFORM (SELECT mail FROM utilisateur,mensualite, LATERAL send_mail(mail) WHERE utilisateur.id = mensualite.id_donateur AND mensualite.id_projet = OLD.id); 
+	RETURN OLD;
+END;
+$$ language plpgsql;
+
+CREATE TRIGGER delete_projet
+BEFORE DELETE on projet
+FOR EACH ROW
+EXECUTE PROCEDURE delete_projet();
+
+
+
+CREATE OR REPLACE FUNCTION monthly_payment() RETURNS VOID AS $$
+BEGIN
+	INSERT INTO don (id_donateur,id_projet,somme,date_don,estMensuel)
+	VALUES(
+	(SELECT id_donateur FROM mensualite),
+	(SELECT id_projet FROM mensualite),
+	(SELECT somme FROM mensualite)*95/100,
+	(SELECT time FROM time),
+	true
+	);
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION send_newsletter() RETURNS VOID as $$
+BEGIN
+	PERFORM mail FROM utilisateur, LATERAL send_mail(mail) WHERE inscritNewsletter = true;
+END;
+$$ LANGUAGE plpgsql;

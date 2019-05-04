@@ -11,7 +11,7 @@ CREATE TABLE utilisateur (
 	nom varchar(50) NOT NULL,
 	prenom varchar(50) NOT NULL,
 	dateInscr timestamp NOT NULL,
-	inscritNewsletter BOOLEAN NOT NULL
+	inscritNewsletter BOOLEAN DEFAULT false
 );
 
 CREATE TABLE informations_banquaires(
@@ -38,23 +38,23 @@ CREATE TABLE projet (
 
 CREATE TABLE news (
 	id serial PRIMARY KEY,
-	id_projet integer NOT NULL REFERENCES projet(id),
+	id_projet integer NOT NULL REFERENCES projet(id) ON DELETE CASCADE,
 	date_publication TIMESTAMP NOT NULL,
 	estPublique boolean NOT NULL,
 	contenu varchar(1000) NOT NULL
 );
 
 CREATE TABLE palier(
-	id_projet integer NOT NULL REFERENCES projet(id),
-	somme integer NOT NULL,
+	id_projet integer NOT NULL REFERENCES projet(id) ON DELETE CASCADE,
+	somme integer NOT NULL CHECK(somme>=10 AND somme <=50000),
 	objectif varchar(200) NOT NULL,
 	PRIMARY KEY(id_projet,somme)
 	
 );
 
 CREATE TABLE contrepartie (
-	id_projet integer NOT NULL REFERENCES projet(id),
-	somme integer NOT NULL,
+	id_projet integer NOT NULL REFERENCES projet(id) ON DELETE CASCADE,
+	somme integer NOT NULL CHECK (somme>=1 AND somme <=1000),
 	contrepartie varchar(200) NOT NULL,
 	PRIMARY KEY(id_projet,somme)
 );
@@ -62,7 +62,7 @@ CREATE TABLE contrepartie (
 CREATE TABLE commentaire (
 	id serial PRIMARY KEY,
 	id_utilisateur integer NOT NULL REFERENCES utilisateur(id),
-	id_projet integer NOT NULL REFERENCES projet(id),
+	id_projet integer NOT NULL REFERENCES projet(id) ON DELETE CASCADE,
 	date_creation TIMESTAMP NOT NULL,
 	message varchar(500) NOT NULL
 );
@@ -70,22 +70,22 @@ CREATE TABLE commentaire (
 CREATE TABLE don (
        	id serial PRIMARY KEY,
 	id_donateur integer NOT NULL REFERENCES utilisateur(id),
-	id_projet integer NOT NULL REFERENCES projet(id),
-	somme integer NOT NULL,
+	id_projet integer NOT NULL REFERENCES projet(id) ON DELETE CASCADE,
+	somme integer NOT NULL CHECK (somme >=1 AND somme <=1000),
 	date_don TIMESTAMP NOT NULL,
-	estMensuel boolean NOT NULL
+	estMensuel boolean DEFAULT false
 );
 
 CREATE TABLE mensualite(
 	id_donateur integer NOT NULL REFERENCES utilisateur(id),
-	id_projet integer NOT NULL REFERENCES projet(id),
-	somme integer NOT NULL,
+	id_projet integer NOT NULL REFERENCES projet(id) ON DELETE CASCADE,
+	somme integer NOT NULL CHECK (somme >=1 AND somme <=1000),
 	PRIMARY KEY(id_donateur,id_projet)
 );
 
 CREATE TABLE preference(
-	id_utilisateur integer NOT NULL REFERENCES utilisateur(id),
-	id_categorie integer NOT NULL REFERENCES categorie(id),
+	id_utilisateur integer NOT NULL REFERENCES utilisateur(id) ON DELETE CASCADE,
+	id_categorie integer NOT NULL REFERENCES categorie(id) ON DELETE CASCADE,
 	somme integer,
 	PRIMARY KEY(id_utilisateur,id_categorie)
 );
