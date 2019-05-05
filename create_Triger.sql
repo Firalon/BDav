@@ -121,7 +121,9 @@ EXECUTE PROCEDURE delete_projet();
 
 CREATE OR REPLACE FUNCTION monthly_payment() RETURNS VOID AS $$
 BEGIN
-	INSERT INTO don (id_donateur,id_projet,somme,date_don,estMensuel)
+RAISE NOTICE 'Paiement mensuel';
+IF ((SELECT id_donateur FROM mensualite) IS NOT NULL) THEN
+INSERT INTO don (id_donateur,id_projet,somme,date_don,estMensuel)
 	VALUES(
 	(SELECT id_donateur FROM mensualite),
 	(SELECT id_projet FROM mensualite),
@@ -129,6 +131,8 @@ BEGIN
 	(SELECT time FROM time),
 	true
 	);
+END IF;
+	
 END;
 $$ LANGUAGE plpgsql;
 
@@ -145,7 +149,7 @@ CREATE OR REPLACE FUNCTION recap_mail_donateur(mail varchar(50)) RETURNS VOID AS
 DECLARE
 total integer;
 BEGIN
-total = (SELECT SUM(somme) FROM don,utilisateur WHERE don.id_donateur = utilisateur.id AND utilisateur.mail=mail);
+total = (SELECT SUM(somme) FROM don,utilisateur WHERE don.id_donateur = utilisateur.id AND utilisateur.mail=mail AND don.date_don > (SELECT time FROM time ) - interval '30 days');
 RAISE NOTICE 'mail envoyé à %, qui a donne %e ce mois ci',mail,total;
 END;
 $$ LANGUAGE plpgsql;
@@ -155,8 +159,17 @@ CREATE OR REPLACE FUNCTION recap_mail_createur(mail varchar(50)) RETURNS VOID AS
 DECLARE
 total integer;
 BEGIN
-total = (SELECT SUM(somme) FROM don,projet WHERE don.id_projet = projet.id AND projet.id_createur = (SELECT id FROM utilisateur WHERE mail = utilisateur.mail));
+total = (SELECT SUM(somme) FROM don,projet WHERE don.id_projet = projet.id AND projet.id_createur = (SELECT id FROM utilisateur WHERE mail = utilisateur.mail) AND don.date_don > (SELECT time FROM time ) - interval '30 days');
 RAISE NOTICE 'mail envoyé à %, qui a recu %e pour son projet ce mois ci',mail,total;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION recap_mail() RETURNS VOID AS $$
+BEGIN
+RAISE NOTICE 'Envois de mails aux donateurs:';
+	PERFORM mail FROM utilisateur, LATERAL recap_mail_donateur(mail);
+RAISE NOTICE 'Envois de mails aux createurs:';	
+	PERFORM mail FROM utilisateur,projet, LATERAL recap_mail_createur(mail) WHERE utilisateur.id = projet.id_createur;
 END;
 $$ LANGUAGE plpgsql;
 
