@@ -15,7 +15,7 @@ CREATE TABLE utilisateur (
 );
 
 CREATE TABLE informations_banquaires(
-       id_utilisateur integer NOT NULL REFERENCES utilisateur(id),
+       id_utilisateur integer UNIQUE NOT NULL REFERENCES utilisateur(id),
        numero integer NOT NULL,
        mois_expiration integer NOT NULL CHECK (mois_expiration>=1 AND mois_expiration<=12),
        annee_expiration integer NOT NULL CHECK (annee_expiration>=0 AND annee_expiration<=99),
