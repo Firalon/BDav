@@ -30,7 +30,7 @@ INSERT INTO projet (id_createur, id_categorie, description, date_creation)
 
 INSERT INTO palier(id_projet, somme, objectif)
        VALUES
-       (1,10000000,'Baisse du prix de l''essence'),
+       (1,10000,'Baisse du prix de l''essence'),
        (2,1000,'Achat d''une caméra HD'),
        (2,2500,'Financement de cours métrage'),
        (2,5000,'Embauche d''un salarié'),
@@ -39,7 +39,7 @@ INSERT INTO palier(id_projet, somme, objectif)
 
 INSERT INTO contrepartie(id_projet,somme,contrepartie)
        VALUES
-       (1,10000,'reduction des impôts'),
+       (1,1000,'reduction des impôts'),
        (2,1,'Merci !'),
        (2,5,'Merci beaucoup ! Vous seriez remercier en fin de vidéo'),
        (3,10,'Merci pour votre soutien !'),

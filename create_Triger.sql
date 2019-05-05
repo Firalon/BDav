@@ -138,3 +138,50 @@ BEGIN
 	PERFORM mail FROM utilisateur, LATERAL send_mail(mail) WHERE inscritNewsletter = true;
 END;
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION recap_mail_donateur(mail varchar(50)) RETURNS VOID AS $$
+#variable_conflict use_variable
+DECLARE
+total integer;
+BEGIN
+total = (SELECT SUM(somme) FROM don,utilisateur WHERE don.id_donateur = utilisateur.id AND utilisateur.mail=mail);
+RAISE NOTICE 'mail envoyé à %, qui a donne %e ce mois ci',mail,total;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION recap_mail_createur(mail varchar(50)) RETURNS VOID AS $$
+#variable_conflict use_variable
+DECLARE
+total integer;
+BEGIN
+total = (SELECT SUM(somme) FROM don,projet WHERE don.id_projet = projet.id AND projet.id_createur = (SELECT id FROM utilisateur WHERE mail = utilisateur.mail));
+RAISE NOTICE 'mail envoyé à %, qui a recu %e pour son projet ce mois ci',mail,total;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION palier_mail(mail varchar(50),palier integer) RETURNS VOID AS $$
+BEGIN
+RAISE NOTICE 'Mail envoye a % pour avoir atteint le palier %',mail,palier;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION check_palier() RETURNS TRIGGER AS $$
+DECLARE
+	total integer;
+	palier integer;
+BEGIN
+total = (SELECT SUM(somme) FROM don WHERE don.id_projet = NEW.id_projet);
+FOR palier in (SELECT somme FROM palier WHERE palier.id_projet = NEW.id_projet) LOOP
+    IF (total - NEW.somme < palier AND total >= palier) THEN
+       EXECUTE palier_mail((SELECT mail FROM utilisateur, projet WHERE utilisateur.id = projet.id_createur AND projet.id = NEW.id_projet),palier);
+    END IF;
+END LOOP;
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_palier
+AFTER INSERT on don
+FOR EACH ROW
+EXECUTE PROCEDURE check_palier();
