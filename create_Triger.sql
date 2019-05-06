@@ -216,7 +216,7 @@ EXECUTE PROCEDURE prevent_self_com();
 
 CREATE OR REPLACE FUNCTION check_infos_banquaires() RETURNS TRIGGER AS $$
 BEGIN
-IF (SELECT id_utilisateur FROM informations_banquaires WHERE id_utilisateur = NEW.id_donateur ) THEN
+IF (EXISTS(SELECT id_utilisateur FROM informations_banquaires WHERE id_utilisateur = NEW.id_donateur )) THEN
     RETURN NEW;
 ELSE
 	RAISE EXCEPTION 'L''utilisateur n''as pas d''informations banquaires associes';	
@@ -254,15 +254,10 @@ EXECUTE PROCEDURE delete_projet();
 CREATE OR REPLACE FUNCTION monthly_payment() RETURNS VOID AS $$
 BEGIN
 RAISE NOTICE 'Paiement mensuel';
-IF ((SELECT id_donateur FROM mensualite) IS NOT NULL) THEN
+IF (EXISTS(SELECT id_donateur FROM mensualite)) THEN
 INSERT INTO don (id_donateur,id_projet,somme,date_don,estMensuel)
-	VALUES(
-	(SELECT id_donateur FROM mensualite),
-	(SELECT id_projet FROM mensualite),
-	(SELECT somme FROM mensualite)*95/100,
-	(SELECT time FROM time),
-	true
-	);
+       SELECT id_donateur,id_projet,somme,(SELECT time FROM time),true
+       FROM mensualite;
 END IF;
 	
 END;

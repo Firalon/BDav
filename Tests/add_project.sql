@@ -6,6 +6,6 @@ INSERT INTO projet (id_createur, id_categorie, description, date_creation)
 
 INSERT INTO palier(id_projet,somme,objectif)
 VALUES
-(SELECT id FROM projet WHERE description='chaine de vulgarisation politique',1000,'realiser des reportages');
+((SELECT id FROM projet WHERE description='chaine de vulgarisation politique'),1000,'realiser des reportages');
 
 \echo 'palier créer'
