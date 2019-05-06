@@ -10,9 +10,23 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER log_user
 AFTER INSERT ON utilisateur
 FOR EACH ROW
-EXECUTE PROCEDURE log();
+EXECUTE PROCEDURE log_user();
 
-CREATE OR REPLACE FUNCTION don() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION log_desinscription_user() RETURNS trigger AS $$
+BEGIN
+INSERT INTO archive (id_utilisateur,date_operation,operation)
+       VALUES(OLD.id, (SELECT time FROM time), 'DESINSCRIPTION');
+       RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER log_desinscription_user
+AFTER DELETE ON utilisateur
+FOR EACH ROW
+EXECUTE PROCEDURE log_desinscription_user();
+
+CREATE OR REPLACE FUNCTION log_don() RETURNS trigger AS $$
 BEGIN
 INSERT INTO archive(id_utilisateur, date_operation,operation,valeur, cible)
        VALUES (NEW.id_donateur, (SELECT time FROM time), 'DON', NEW.somme, NEW.id_projet);
@@ -20,10 +34,128 @@ INSERT INTO archive(id_utilisateur, date_operation,operation,valeur, cible)
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER don
+CREATE TRIGGER log_don
 AFTER INSERT ON don
 FOR EACH ROW
-EXECUTE PROCEDURE don();
+EXECUTE PROCEDURE log_don();
+
+CREATE OR REPLACE FUNCTION log_ouverture_projet() RETURNS trigger AS $$
+BEGIN
+INSERT INTO archive (id_utilisateur,date_operation,operation)
+       VALUES(NEW.id_createur, (SELECT time FROM time), 'OUVERTURE_PROJET');
+       RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER log_ouverture_projet
+AFTER INSERT ON projet
+FOR EACH ROW
+EXECUTE PROCEDURE log_ouverture_projet();
+
+CREATE OR REPLACE FUNCTION log_fermeture_projet() RETURNS trigger AS $$
+BEGIN
+INSERT INTO archive (id_utilisateur,date_operation,operation)
+       VALUES(OLD.id_createur, (SELECT time FROM time), 'FERMETURE_PROJET');
+       RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER log_fermeture_projet
+AFTER DELETE ON projet
+FOR EACH ROW
+EXECUTE PROCEDURE log_fermeture_projet();
+
+CREATE OR REPLACE FUNCTION log_mensualite() RETURNS trigger AS $$
+BEGIN
+INSERT INTO archive (id_utilisateur,date_operation,operation,valeur,cible)
+       VALUES(NEW.id_donateur, (SELECT time FROM time), 'CHGT_MENSUALITE',NEW.somme,NEW.id_projet);
+       RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER log_mensualite
+AFTER INSERT OR UPDATE ON mensualite
+FOR EACH ROW
+EXECUTE PROCEDURE log_mensualite();
+
+CREATE OR REPLACE FUNCTION log_arret_mensualite() RETURNS trigger AS $$
+BEGIN
+INSERT INTO archive (id_utilisateur,date_operation,operation,cible)
+       VALUES(OLD.id_donateur, (SELECT time FROM time), 'ARRET_MENSUALITE',OLD.id_projet);
+       RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER log_arret_mensualite
+AFTER DELETE ON mensualite
+FOR EACH ROW
+EXECUTE PROCEDURE log_arret_mensualite();
+
+CREATE OR REPLACE FUNCTION log_palier() RETURNS trigger AS $$
+BEGIN
+INSERT INTO archive (id_utilisateur,date_operation,operation,valeur,cible)
+       VALUES((SELECT utilisateur.id FROM utilisateur,projet WHERE NEW.id_projet = projet.id AND projet.id_createur = utilisateur.id), (SELECT time FROM time), 'CREATION_PALIER',NEW.somme,NEW.id_projet);
+       RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER log_palier
+AFTER INSERT ON palier
+FOR EACH ROW
+EXECUTE PROCEDURE log_palier();
+
+
+
+
+CREATE OR REPLACE FUNCTION log_arret_palier() RETURNS trigger AS $$
+BEGIN
+INSERT INTO archive (id_utilisateur,date_operation,operation)
+       VALUES((SELECT utilisateur.id FROM utilisateur,projet WHERE OLD.id_projet = projet.id AND projet.id_createur = utilisateur.id), (SELECT time FROM time), 'DELETE_PALIER',OLD.id_projet);
+       RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER log_arret_palier
+AFTER DELETE ON palier
+FOR EACH ROW
+EXECUTE PROCEDURE log_arret_palier();
+
+CREATE OR REPLACE FUNCTION log_contrepartie() RETURNS trigger AS $$
+BEGIN
+INSERT INTO archive (id_utilisateur,date_operation,operation,valeur,cible)
+       VALUES((SELECT utilisateur.id FROM utilisateur,projet WHERE NEW.id_projet = projet.id AND projet.id_createur = utilisateur.id), (SELECT time FROM time), 'CREATION_CONTREPARTIE',NEW.somme,NEW.id_projet);
+       RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER log_contrepartie
+AFTER INSERT ON contrepartie
+FOR EACH ROW
+EXECUTE PROCEDURE log_contrepartie();
+
+
+CREATE OR REPLACE FUNCTION log_arret_contrepartie() RETURNS trigger AS $$
+BEGIN
+INSERT INTO archive (id_utilisateur,date_operation,operation,cible)
+       VALUES((SELECT utilisateur.id FROM utilisateur,projet WHERE OLD.id_projet = projet.id AND projet.id_createur = utilisateur.id), (SELECT time FROM time), 'ARRET_MENSUALITE', OLD.id_projet);
+       RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER log_arret_contrepartie
+AFTER DELETE ON contrepartie
+FOR EACH ROW
+EXECUTE PROCEDURE log_arret_contrepartie();
+
+
 
 
 CREATE OR REPLACE FUNCTION update_pref() RETURNS TRIGGER AS $$
